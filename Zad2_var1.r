@@ -5,15 +5,15 @@ library(tidyverse)
 #считали таблицу
 table = read_csv("https://www.dropbox.com/s/erhs9hoj4vhrz0b/eddypro.csv?dl=1",
                  skip=1, comment = "[")
-#убрали самую первую строку значений, тк она пустая
+#убрали самую первую строку значений, так как она пустая
 table <- table[-1,]
 #приравняли значения -9999 к NA
 table[table == -9999] = NA
-#оставили строки ночные
+#оставили строки дневные
 table <- table %>% filter(daytime == "T")
 #оставили строки 2013 года
 table <- table %>% filter(year(date) == 2013)
-#оставили строки осени
+#оставили строки весны
 table <- table %>% filter(month(date) %in% c(03, 04, 05))
 #оставили строки только числовые
 table = table %>% select(where(is.numeric))
@@ -60,19 +60,21 @@ data_pca = prcomp(na.exclude(cpa_dataf),scale=TRUE)
 #отобразили розу ветров для влияния различных показателей
 fviz_pca_var(data_pca,repel = TRUE, col.var = "steelblue")
 #создали модель линейной регрессии исходя из показателей, максимально приближенных к co2_flux по влиянию
-model = lm(co2_flux ~ air_heat_capacity+air_pressure+u_unrot+Tdew+air_heat_capacity+h2o_var, table)
+model = lm(co2_flux ~x_offset+x_10_p+air_density, table)
 #вывели сводную по получившейся модели
 summary(model)
 
-formula = paste(c("co2_flux ~ ", paste(names(cpa_dataf)[-38], collapse = "+")), collapse = "")
-formula = as.formula(formula)
+formula = paste(c("co2_flux ~ ", paste(names(cpa_dataf)[-69], collapse = "+")), collapse = "")
+formula1 = as.formula(formula)
 
-model_first = lm(formula, cpa_dataf)
+model_first = lm(formula1, cpa_dataf)
 summary(model_first)
-formula2 = formula(co2_flux ~ wind_dir + u_spikes + h2o...128  + w_spikes + u_rot + air_molar_volume + h2o_var + qc_LE)
+formula2 = formula(co2_flux ~ Tau + rand_err_Tau  + H + rand_err_LE + rand_err_h2o_flux + h2o_molar_density + air_pressure + air_density + air_molar_volume +
+                     wind_dir + pitch + x_70_p + x_90_p + un_Tau + w_spikes + w__ts_cov + w__h2o_cov + h2o...126  + h2o...128)
 model2 = lm(formula2, cpa_dataf)
 summary(model2)
-formula3 = formula(co2_flux ~ wind_dir + u_spikes + h2o...128  + w_spikes + u_rot + h2o_var + qc_LE)
+formula3 = formula(co2_flux ~ Tau + rand_err_Tau  + H  + h2o_molar_density + air_pressure + air_density + air_molar_volume +
+                     pitch + un_Tau + w_spikes + w__ts_cov + w__h2o_cov + h2o...126  + h2o...128)
 model3 = lm(formula3, cpa_dataf)
 summary(model3)
 anova(model3)
